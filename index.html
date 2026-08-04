@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Crystallize your raw thoughts into text with this ad-free, local dictation tool.">
+    <title>Ramble Scribe</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col items-center p-4 md:p-8 transition-colors duration-300">
+
+    <div class="w-full max-w-4xl bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] transition-colors duration-300 flex-1">
+        
+        <!-- Header -->
+        <div class="bg-slate-900 dark:bg-slate-950 text-white p-5 md:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors duration-300 shrink-0">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-2">
+                    <i class="ph-fill ph-microphone-stage text-blue-400"></i>
+                    Ramble Scribe
+                </h1>
+                <p class="text-sm mt-1 text-slate-300 dark:text-slate-400">
+                    Crystallize your raw thoughts
+                </p>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <button id="themeToggleBtn" class="p-3 rounded-full transition-colors flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-yellow-400" title="Toggle Theme">
+                    <i class="ph ph-sun text-xl" id="themeIcon"></i>
+                </button>
+                
+                <button id="recordBtn" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-full font-semibold transition-all duration-300 shadow-md bg-blue-600 hover:bg-blue-700 text-white">
+                    <i class="ph ph-microphone text-xl" id="recordIcon"></i> 
+                    <span id="recordText">Start Rambling</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="errorBanner" class="hidden border-l-4 p-4 flex items-start gap-3 bg-red-50 border-red-500 dark:bg-red-900/30 dark:border-red-500 shrink-0">
+            <i class="ph ph-warning-circle text-xl text-red-500 flex-shrink-0 mt-0.5"></i>
+            <p id="errorText" class="text-sm text-red-700 dark:text-red-300"></p>
+        </div>
+
+        <div class="flex-1 p-4 md:p-6 flex flex-col gap-4 overflow-hidden relative bg-slate-50 dark:bg-slate-800 transition-colors duration-300">
+            
+            <!-- Toolbar -->
+            <div class="flex justify-between items-end flex-wrap gap-4 shrink-0">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Your Transcript</h2>
+                
+                <div class="flex flex-wrap gap-2">
+                    <button id="fixSpacingBtn" disabled class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-white border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-purple-600 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600 dark:hover:text-purple-400">
+                        <i class="ph ph-magic-wand text-lg"></i> Fix Spacing
+                    </button>
+                    
+                    <button id="saveBtn" disabled class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-white border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-green-600 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600 dark:hover:text-green-400">
+                        <i class="ph ph-download-simple text-lg"></i> Save
+                    </button>
+
+                    <button id="copyBtn" disabled class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-white border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-blue-600 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600 dark:hover:text-blue-400">
+                        <i class="ph ph-copy text-lg" id="copyIcon"></i> <span id="copyText">Copy Text</span>
+                    </button>
+                    
+                    <button id="clearBtn" disabled class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-white border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-red-600 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600 dark:hover:text-red-400">
+                        <i class="ph ph-trash text-lg"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 relative border rounded-xl shadow-inner focus-within:ring-2 focus-within:ring-blue-500 transition-all flex flex-col overflow-hidden bg-white border-slate-200 dark:bg-slate-700 dark:border-slate-600">
+                
+                <textarea id="transcriptArea" placeholder="Your finalized text will appear here... Feel free to type or edit manually as well." class="flex-1 w-full p-4 resize-none focus:outline-none leading-relaxed text-[16px] md:text-lg bg-transparent z-10 text-slate-700 placeholder-slate-400 dark:text-slate-100 dark:placeholder-slate-400" spellcheck="false"></textarea>
+                
+                <!-- Interim Transcript Overlay -->
+                <div id="interimOverlay" class="hidden absolute bottom-4 left-4 right-4 p-3 border rounded-lg shadow-sm z-20 pointer-events-none bg-blue-50 border-blue-100 dark:bg-blue-900/40 dark:border-blue-800">
+                    <p class="text-sm font-medium flex items-center gap-2 text-blue-600 dark:text-blue-300">
+                        <i class="ph-fill ph-microphone text-sm animate-pulse"></i> Listening: 
+                        <span id="interimText" class="italic font-normal ml-1 text-slate-600 dark:text-slate-300"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-3 md:p-4 border-t text-center text-xs shrink-0 bg-white border-slate-100 text-slate-400 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500">
+            Make sure to allow microphone permissions. Audio processing happens in your browser natively.
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const recordBtn = document.getElementById('recordBtn');
+        const recordIcon = document.getElementById('recordIcon');
+        const recordText = document.getElementById('recordText');
+        const errorBanner = document.getElementById('errorBanner');
+        const errorText = document.getElementById('errorText');
+        const transcriptArea = document.getElementById('transcriptArea');
+        const interimOverlay = document.getElementById('interimOverlay');
+        const interimText = document.getElementById('interimText');
+        const fixSpacingBtn = document.getElementById('fixSpacingBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const copyIcon = document.getElementById('copyIcon');
+        const copyText = document.getElementById('copyText');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // State Variables
+        let isRecording = false;
+        let isDarkMode = document.documentElement.classList.contains('dark');
+        let recognition = null;
+        let shouldRecognize = false;
+        let terminalError = false;
+        let processedIndex = -1;
+        let finalTranscript = '';
+        let interimTranscriptString = '';
+
+        function updateTheme() {
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+                themeIcon.classList.replace('ph-moon', 'ph-sun');
+                themeToggleBtn.classList.add('text-yellow-400');
+                themeToggleBtn.classList.remove('text-slate-300');
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeIcon.classList.replace('ph-sun', 'ph-moon');
+                themeToggleBtn.classList.remove('text-yellow-400');
+                themeToggleBtn.classList.add('text-slate-300');
+            }
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            updateTheme();
+        });
+        updateTheme(); // Init
+
+        function updateButtonStates() {
+            const hasText = finalTranscript.length > 0;
+            const hasInterim = interimTranscriptString.length > 0;
+            fixSpacingBtn.disabled = !hasText;
+            saveBtn.disabled = !hasText;
+            copyBtn.disabled = !hasText;
+            clearBtn.disabled = !(hasText || hasInterim);
+        }
+
+        function showError(msg) {
+            if (msg) {
+                errorText.textContent = msg;
+                errorBanner.classList.remove('hidden');
+            } else {
+                errorBanner.classList.add('hidden');
+            }
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                showError("Your browser does not support the Web Speech API. Please try using Google Chrome or Microsoft Edge.");
+                return false;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isRecording = true;
+                showError(null);
+                processedIndex = -1;
+                terminalError = false;
+                
+                // Update UI
+                recordBtn.classList.replace('bg-blue-600', 'bg-red-500');
+                recordBtn.classList.replace('hover:bg-blue-700', 'hover:bg-red-600');
+                recordBtn.classList.add('animate-pulse');
+                recordIcon.classList.replace('ph-microphone', 'ph-stop');
+                recordIcon.classList.add('ph-fill');
+                recordText.textContent = "Stop Listening";
+            };
+
+            recognition.onresult = (event) => {
+                let currentFinalSpeech = '';
+                interimTranscriptString = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    let transcriptChunk = event.results[i][0].transcript;
+
+                    // Apply custom punctuation mappings
+                    transcriptChunk = transcriptChunk
+                        .replace(/\s*full stop/gi, '.')
+                        .replace(/\s*semi stop/gi, ';')
+                        .replace(/\s*colon stop/gi, ':')
+                        .replace(/\s*comma/gi, ',')
+                        .replace(/\s*question stop/gi, '?')
+                        .replace(/\s*exclamation stop/gi, '!')
+                        .replace(/\s*dash stop/gi, '-')
+                        .replace(/\s*quote stop/gi, '"')
+                        .replace(/\s*apostrophe stop/gi, "'")
+                        .replace(/\s*backslash/gi, '\\')
+                        .replace(/\s*forward slash/gi, '/')
+                        .replace(/\b(num|number)\s*(zero|0)\b/gi, '0')
+                        .replace(/\b(num|number)\s*(one|1)\b/gi, '1')
+                        .replace(/\b(num|number)\s*(two|2)\b/gi, '2')
+                        .replace(/\b(num|number)\s*(three|3)\b/gi, '3')
+                        .replace(/\b(num|number)\s*(four|4)\b/gi, '4')
+                        .replace(/\b(num|number)\s*(five|5)\b/gi, '5')
+                        .replace(/\b(num|number)\s*(six|6)\b/gi, '6')
+                        .replace(/\b(num|number)\s*(seven|7)\b/gi, '7')
+                        .replace(/\b(num|number)\s*(eight|8)\b/gi, '8')
+                        .replace(/\b(num|number)\s*(nine|9)\b/gi, '9');
+
+                    if (event.results[i].isFinal) {
+                        if (i > processedIndex) {
+                            currentFinalSpeech += transcriptChunk + ' ';
+                            processedIndex = i; 
+                        }
+                    } else {
+                        interimTranscriptString += transcriptChunk;
+                    }
+                }
+
+                if (currentFinalSpeech) {
+                    finalTranscript += currentFinalSpeech;
+                    transcriptArea.value = finalTranscript;
+                    updateButtonStates();
+                }
+
+                if (interimTranscriptString) {
+                    interimText.textContent = `"${interimTranscriptString}"`;
+                    interimOverlay.classList.remove('hidden');
+                } else {
+                    interimOverlay.classList.add('hidden');
+                }
+
+                // Auto-scroll
+                transcriptArea.scrollTop = transcriptArea.scrollHeight;
+            };
+
+            recognition.onerror = (event) => {
+                console.warn("Speech recognition error:", event.error);
+                
+                if (event.error === 'not-allowed') {
+                    showError("Microphone access was denied. Please allow microphone access to use this app.");
+                    shouldRecognize = false;
+                    terminalError = true;
+                    stopRecordingUI();
+                } else if (event.error === 'audio-capture') {
+                    showError("No microphone found. Please ensure your microphone is connected and working.");
+                    shouldRecognize = false;
+                    terminalError = true;
+                    stopRecordingUI();
+                } else if (event.error === 'network') {
+                    showError("Network error. Speech recognition requires an active internet connection.");
+                    shouldRecognize = false;
+                    terminalError = true;
+                    stopRecordingUI();
+                } else if (event.error !== 'no-speech') {
+                    showError(`Error: ${event.error}`);
+                }
+            };
+
+            recognition.onend = () => {
+                if (shouldRecognize && !terminalError) {
+                    setTimeout(() => {
+                        if (shouldRecognize && !terminalError) {
+                            try {
+                                recognition.start();
+                            } catch (e) {
+                                console.error("Failed to restart recognition", e);
+                                stopRecordingUI();
+                            }
+                        }
+                    }, 400);
+                } else {
+                    stopRecordingUI();
+                }
+                interimTranscriptString = '';
+                interimOverlay.classList.add('hidden');
+                updateButtonStates();
+            };
+
+            return true;
+        }
+
+        function stopRecordingUI() {
+            isRecording = false;
+            shouldRecognize = false;
+            recordBtn.classList.replace('bg-red-500', 'bg-blue-600');
+            recordBtn.classList.replace('hover:bg-red-600', 'hover:bg-blue-700');
+            recordBtn.classList.remove('animate-pulse');
+            recordIcon.classList.replace('ph-stop', 'ph-microphone');
+            recordIcon.classList.remove('ph-fill');
+            recordText.textContent = "Start Rambling";
+        }
+
+        recordBtn.addEventListener('click', () => {
+            if (!recognition) {
+                if (!initSpeechRecognition()) return;
+            }
+
+            if (isRecording) {
+                shouldRecognize = false;
+                recognition.stop();
+            } else {
+                shouldRecognize = true;
+                showError(null);
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error("Start error", e);
+                }
+            }
+        });
+
+        transcriptArea.addEventListener('input', (e) => {
+            finalTranscript = e.target.value;
+            updateButtonStates();
+        });
+
+        fixSpacingBtn.addEventListener('click', () => {
+            finalTranscript = finalTranscript.replace(/\s{2,}/g, ' ');
+            transcriptArea.value = finalTranscript;
+            transcriptArea.focus();
+        });
+
+        clearBtn.addEventListener('click', () => {
+            if (window.confirm("Are you sure you want to clear your entire transcription?")) {
+                finalTranscript = '';
+                interimTranscriptString = '';
+                transcriptArea.value = '';
+                interimOverlay.classList.add('hidden');
+                updateButtonStates();
+            }
+        });
+
+        saveBtn.addEventListener('click', () => {
+            if (!finalTranscript) return;
+            const element = document.createElement("a");
+            const file = new Blob([finalTranscript], {type: 'text/plain'});
+            element.href = URL.createObjectURL(file);
+            element.download = `ramble-transcript-${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        });
+
+        copyBtn.addEventListener('click', () => {
+            if (!finalTranscript) return;
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = finalTranscript;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    copyIcon.classList.replace('ph-copy', 'ph-check-circle');
+                    copyIcon.classList.add('text-green-500');
+                    copyText.textContent = 'Copied!';
+                    
+                    setTimeout(() => {
+                        copyIcon.classList.replace('ph-check-circle', 'ph-copy');
+                        copyIcon.classList.remove('text-green-500');
+                        copyText.textContent = 'Copy Text';
+                    }, 2000);
+                }
+            } catch (err) {
+                showError("Oops, unable to copy.");
+            }
+
+            document.body.removeChild(textArea);
+        });
+
+    </script>
+</body>
+</html>
